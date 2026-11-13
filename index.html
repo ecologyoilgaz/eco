@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ECO Impact Token (€ECO) — Ecological Core of the 123 Network</title>
+    <meta name="description" content="ECO Impact Token (€ECO) — RWA-backed ESG token on Solana Token-2022. On-chain Green Audit, backed by gold & emeralds. Target: +1000%." />
+    <link rel="icon" href="eco_logo.png" />
+    
+    <!-- Three.js для 3D-фона -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Vanilla-tilt для 3D-карточек -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+
+    <style>
+        /* ===== ОБЩИЕ СТИЛИ (Green Tech Theme) ===== */
+        :root {
+            --bg-color: #040906; /* Глубокий темно-зеленый */
+            --text-color: #E0F0E6; /* Светло-зеленоватый */
+            --eco-green: #2ECC40; /* Яркий зеленый */
+            --eco-dark: #1B8A2A;
+            --gold: #FFD700;
+            --gold-dark: #FFA500;
+            --glass-bg: rgba(10, 25, 15, 0.5);
+            --glass-border: rgba(46, 204, 64, 0.25);
+            --danger: #FF4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-color); color: var(--text-color);
+            line-height: 1.6; overflow-x: hidden;
+            padding-top: 130px; padding-bottom: 60px;
+            cursor: none;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* ===== КАСТОМНЫЙ КУРСОР ===== */
+        .cursor-dot, .cursor-outline {
+            position: fixed; top: 0; left: 0; transform: translate(-50%, -50%);
+            border-radius: 50%; z-index: 9999; pointer-events: none;
+        }
+        .cursor-dot { width: 8px; height: 8px; background: var(--eco-green); box-shadow: 0 0 10px var(--eco-green); }
+        .cursor-outline {
+            width: 40px; height: 40px; border: 2px solid rgba(46, 204, 64, 0.5);
+            transition: width 0.2s, height 0.2s, background 0.2s;
+        }
+        .cursor-outline.hovering { width: 60px; height: 60px; background: rgba(46, 204, 64, 0.1); }
+
+        /* ===== ПРЕЛОАДЕР ===== */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s;
+        }
+        #preloader.hidden { opacity: 0; pointer-events: none; }
+        .loader-logo { font-size: 40px; font-weight: 800; color: var(--eco-green); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
+
+        /* ===== 3D КОСМОС ===== */
+        #cosmic-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+
+        /* ===== ТИКЕРЫ ===== */
+        .ticker {
+            position: fixed; left: 0; width: 100%; z-index: 1000;
+            background: rgba(4, 9, 6, 0.95);
+            border-top: 1px solid #1E2350; border-bottom: 1px solid #1E2350;
+            overflow: hidden; padding: 6px 0; backdrop-filter: blur(8px);
+        }
+        .ticker-top { top: 0; border-bottom: 1px solid var(--glass-border); }
+        .ticker-bottom { bottom: 0; border-top: 1px solid var(--glass-border); }
+        .ticker-track { display: flex; white-space: nowrap; animation: tickerScroll 45s linear infinite; width: max-content; }
+        .ticker-track span { margin: 0 30px; font-size: 13px; color: var(--text-color); opacity: 0.8; letter-spacing: 0.5px; flex-shrink: 0; }
+        .ticker-track .highlight-ticker { color: var(--eco-green); font-weight: 600; }
+        .ticker-track .gold-ticker { color: var(--gold); font-weight: 600; }
+        .ticker-track .contract-ticker { font-family: 'Courier New', monospace; color: var(--eco-green); background: rgba(46, 204, 64, 0.1); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* ===== ШАПКА ===== */
+        header {
+            position: fixed; top: 36px; left: 0; width: 100%;
+            background: rgba(4, 9, 6, 0.8); backdrop-filter: blur(12px);
+            z-index: 900; border-bottom: 1px solid var(--glass-border);
+            padding: 8px 0;
+        }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .logo { display: flex; align-items: center; gap: 8px; }
+        .logo img { height: 40px; width: auto; border-radius: 50%; box-shadow: 0 0 15px rgba(46, 204, 64, 0.3); }
+        .logo-text { font-size: 20px; font-weight: 700; color: #fff; }
+        .logo-badge { font-size: 9px; background: var(--eco-green); color: #040906; padding: 2px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+        
+        .header-contract {
+            font-size: 10px; opacity: 0.8;
+            background: rgba(10, 25, 15, 0.8); padding: 4px 12px;
+            border-radius: 20px; border: 1px solid var(--glass-border);
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: 'Courier New', monospace;
+        }
+        .header-contract .copy-btn { background: transparent; border: none; color: inherit; cursor: pointer; font-size: 11px; }
+        .header-contract .copy-btn:hover { color: var(--eco-green); }
+        .header-contract .solscan-link { color: inherit; text-decoration: none; font-size: 11px; }
+        .header-contract .solscan-link:hover { color: var(--eco-green); }
+
+        nav { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        nav a { color: inherit; opacity: 0.7; text-decoration: none; font-size: 12px; font-weight: 500; transition: 0.3s; }
+        nav a:hover { color: var(--eco-green); opacity: 1; }
+        nav a.active { color: var(--eco-green); border-bottom: 2px solid var(--eco-green); opacity: 1; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--eco-green), var(--eco-dark)); color: #040906; padding: 8px 22px;
+            border-radius: 30px; font-weight: 700; text-decoration: none;
+            transition: 0.3s; border: none; cursor: pointer; display: inline-block;
+            font-size: 14px; box-shadow: 0 0 15px rgba(46, 204, 64, 0.3);
+        }
+        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(46, 204, 64, 0.6); }
+        
+        .btn-gold {
+            background: transparent; color: var(--gold); padding: 8px 22px;
+            border-radius: 30px; font-weight: 600; text-decoration: none;
+            border: 1px solid var(--gold); transition: 0.3s; display: inline-block; font-size: 14px;
+        }
+        .btn-gold:hover { background: var(--gold); color: #040906; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+
+        /* ===== HERO ===== */
+        .hero { padding: 20px 0 60px; position: relative; z-index: 1; min-height: 80vh; display: flex; align-items: center; }
+        .hero-inner { display: flex; align-items: center; gap: 40px; position: relative; z-index: 1; }
+        .hero-content {
+            flex: 1; background: var(--glass-bg); backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border); border-radius: 30px; padding: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 30px rgba(46, 204, 64, 0.05);
+        }
+        .hero-tag { display: inline-block; background: rgba(46, 204, 64, 0.15); color: var(--eco-green); padding: 4px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; border: 1px solid var(--glass-border); }
+        .hero h1 {
+            font-size: 48px; font-weight: 800; line-height: 1.1; margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff 30%, var(--eco-green) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero h1 .gold-highlight { color: var(--gold); -webkit-text-fill-color: var(--gold); }
+        .hero p { font-size: 18px; opacity: 0.85; max-width: 550px; margin-bottom: 24px; }
+        
+        .hero-stats { display: flex; gap: 30px; margin-bottom: 24px; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-block { display: flex; flex-direction: column; }
+        .stat-number { font-size: 24px; font-weight: 700; color: #fff; }
+        .stat-label { font-size: 12px; color: var(--eco-green); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .contract-hero {
+            margin-top: 20px; padding: 10px 16px; background: rgba(0,0,0,0.4);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+            display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        .contract-hero .addr { color: var(--gold); }
+        .contract-hero .copy-btn { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.2); color: var(--gold); padding: 2px 12px; border-radius: 16px; cursor: pointer; font-size: 11px; transition: 0.2s; }
+        .contract-hero .copy-btn:hover { background: rgba(255,215,0,0.3); }
+        .contract-hero .solscan-link { color: inherit; opacity: 0.7; text-decoration: none; font-size: 11px; }
+        .contract-hero .solscan-link:hover { opacity: 1; color: var(--eco-green); }
+
+        .hero-visual { flex: 0 0 320px; text-align: center; position: relative; }
+        .hero-coin {
+            width: 300px; height: 300px; border-radius: 50%; object-fit: cover;
+            box-shadow: 0 0 100px rgba(46, 204, 64, 0.4), 0 0 200px rgba(255, 215, 0, 0.2);
+            animation: floatCoin 6s ease-in-out infinite; position: relative; z-index: 2;
+            border: 2px solid rgba(46, 204, 64, 0.3);
+        }
+        .hero-coin-glow {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; height: 400px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(46,204,64,0.15) 0%, transparent 70%);
+            z-index: 1; filter: blur(30px);
+        }
+        @keyframes floatCoin { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(3deg); } }
+
+        /* ===== LIVE IMPACT DASHBOARD ===== */
+        .impact-dashboard {
+            background: var(--glass-bg); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 24px;
+            padding: 30px; margin-bottom: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        .impact-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .impact-header h2 { font-size: 24px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .impact-header h2 span { color: var(--eco-green); }
+        .live-badge { font-size: 11px; background: rgba(46, 204, 64, 0.15); color: var(--eco-green); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--glass-border); display: flex; align-items: center; gap: 6px; }
+        .live-badge::before { content: ''; width: 6px; height: 6px; background: var(--eco-green); border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .dash-card {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 20px; text-align: center;
+            transition: 0.3s;
+        }
+        .dash-card:hover { border-color: var(--eco-green); transform: translateY(-3px); }
+        .dash-icon { font-size: 28px; margin-bottom: 8px; }
+        .dash-val { font-size: 24px; font-weight: 800; color: #fff; }
+        .dash-label { font-size: 12px; color: var(--eco-green); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+        
+        .security-warning {
+            margin-top: 20px; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3);
+            padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px;
+            font-size: 13px; color: #FFAAAA;
+        }
+
+        /* ===== ТЕХНОЛОГИИ ===== */
+        section { padding: 60px 0; position: relative; z-index: 1; }
+        .section-header { text-align: center; margin-bottom: 40px; }
+        .section-tag { display: inline-block; background: rgba(46, 204, 64, 0.1); color: var(--eco-green); padding: 4px 16px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid var(--glass-border); }
+        .section-header h2 { font-size: 36px; font-weight: 700; margin: 10px 0; color: #fff; }
+        .section-header p { opacity: 0.7; max-width: 600px; margin: 0 auto; }
+
+        .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+        .tech-card { 
+            background: var(--glass-bg); border: 1px solid var(--glass-border); 
+            border-radius: 20px; padding: 30px; transition: 0.3s; 
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+        }
+        .tech-card img { position: absolute; top: 0; right: 0; width: 120px; opacity: 0.1; transition: 0.3s; }
+        .tech-card:hover img { opacity: 0.3; transform: scale(1.1); }
+        .tech-card:hover { border-color: var(--eco-green); box-shadow: 0 0 30px rgba(46, 204, 64, 0.15); }
+        .tech-icon { font-size: 36px; margin-bottom: 16px; }
+        .tech-card h3 { font-size: 20px; color: #fff; margin-bottom: 8px; }
+        .tech-card p { opacity: 0.8; font-size: 14px; flex-grow: 1; position: relative; z-index: 1; }
+        .tech-tag { font-size: 11px; color: var(--gold); text-transform: uppercase; font-weight: 600; border: 1px solid rgba(255,215,0,0.2); padding: 2px 8px; border-radius: 10px; align-self: flex-start; margin-top: 16px; background: rgba(255,215,0,0.05); }
+
+        /* ===== О ТОКЕНЕ / RWA ===== */
+        .rwa-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .rwa-card { 
+            background: var(--glass-bg); border: 1px solid var(--glass-border); 
+            border-radius: 20px; padding: 24px; text-align: center; transition: 0.3s; 
+        }
+        .rwa-card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255,215,0,0.1); }
+        .rwa-card .rwa-icon { font-size: 32px; margin-bottom: 10px; }
+        .rwa-card h4 { font-size: 17px; color: #fff; }
+        .rwa-card p { opacity: 0.8; font-size: 14px; margin-top: 6px; }
+
+        /* Подвал */
+        footer { background: rgba(2, 5, 3, 0.9); padding: 40px 0 20px; position: relative; z-index: 1; border-top: 1px solid var(--glass-border); margin-bottom: 40px; }
+        .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .footer-brand { display: flex; align-items: center; gap: 8px; }
+        .footer-brand img { height: 32px; width: auto; border-radius: 50%; }
+        .footer-brand .logo-text { font-size: 18px; color: #fff; }
+        .footer-brand p { font-size: 12px; color: var(--eco-green); margin-top: 4px; }
+        .footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+        .footer-links a { color: #fff; opacity: 0.7; text-decoration: none; font-size: 13px; }
+        .footer-links a:hover { color: var(--eco-green); opacity: 1; }
+        
+        .footer-contract { text-align: center; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 16px; font-size: 13px; color: #8A94C8; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; font-family: 'Courier New', monospace; }
+        .footer-contract .addr { color: var(--gold); }
+        .footer-contract .copy-btn { background: transparent; border: none; color: inherit; cursor: pointer; font-size: 13px; }
+        .footer-contract .copy-btn:hover { color: var(--eco-green); }
+        .footer-contract .solscan-link { color: inherit; text-decoration: none; font-size: 13px; }
+        .footer-contract .solscan-link:hover { color: var(--eco-green); }
+        .footer-bottom { text-align: center; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 16px; font-size: 12px; opacity: 0.5; color: #fff; }
+
+        @media (max-width: 768px) {
+            body { padding-top: 180px; cursor: auto; }
+            .cursor-dot, .cursor-outline { display: none; }
+            header { top: 34px; padding: 6px 0; }
+            .header-inner { flex-direction: column; align-items: stretch; }
+            .header-contract { font-size: 9px; padding: 2px 8px; justify-content: center; }
+            nav { justify-content: center; gap: 6px; }
+            nav a { font-size: 10px; }
+            .hero-inner { flex-direction: column; text-align: center; }
+            .hero-content { padding: 24px; }
+            .hero h1 { font-size: 32px; }
+            .hero-stats { justify-content: center; }
+            .hero-actions { justify-content: center; }
+            .hero-visual { flex: 0 0 200px; }
+            .hero-coin { width: 200px; height: 200px; }
+            .footer-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ПРЕЛОАДЕР -->
+<div id="preloader">
+    <div class="loader-logo">€ECO</div>
+</div>
+
+<!-- КАСТОМНЫЙ КУРСОР -->
+<div class="cursor-dot"></div>
+<div class="cursor-outline"></div>
+
+<!-- 3D КОСМОС -->
+<canvas id="cosmic-bg"></canvas>
+
+<!-- ТИКЕР 1 -->
+<div class="ticker ticker-top">
+    <div class="ticker-track">
+        <span>🌱 <span class="highlight-ticker">ECO Impact Token (€ECO)</span> — Ecological Core of the 123 Network</span>
+        <span>✦ Contract: <span class="contract-ticker">74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp</span></span>
+        <span>✦ Price: <span class="gold-ticker">$0.01</span> • Target: +1000%</span>
+        <span>✦ Supply: 8.889T • Token-2022</span>
+        <span>✦ Green Audit • Carbon Offset</span>
+        <span>✦ Backed by Gold & Emeralds</span>
+        <span>🌱 <span class="highlight-ticker">ECO Impact Token (€ECO)</span> — Ecological Core of the 123 Network</span>
+        <span>✦ Contract: <span class="contract-ticker">74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp</span></span>
+        <span>✦ Price: <span class="gold-ticker">$0.01</span> • Target: +1000%</span>
+        <span>✦ Supply: 8.889T • Token-2022</span>
+        <span>✦ Green Audit • Carbon Offset</span>
+        <span>✦ Backed by Gold & Emeralds</span>
+    </div>
+</div>
+
+<!-- ШАПКА -->
+<header>
+    <div class="container header-inner">
+        <div class="logo">
+            <img src="eco_logo.png" alt="ECO Impact Logo" />
+            <span class="logo-text">ECO IMPACT</span>
+            <span class="logo-badge">€ECO</span>
+        </div>
+        <div class="header-contract">
+            📜 <span class="addr">74Zc9n...SnFp</span>
+            <button onclick="navigator.clipboard.writeText('74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp')" class="copy-btn">📋</button>
+            <a href="https://solscan.io/token/74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp" target="_blank" class="solscan-link">🔍</a>
+        </div>
+        <nav>
+            <a href="index.html" class="active">Home</a>
+            <a href="buy.html">Buy</a>
+            <a href="trade.html">Trade</a>
+            <a href="green-audit.html">Green Audit</a>
+            <a href="rwa-vault.html">RWA Vault</a>
+        </nav>
+        <a href="buy.html" class="btn-primary">Buy €ECO</a>
+    </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="container hero-inner">
+        <div class="hero-content" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.1">
+            <div class="hero-tag">🌍 RWA-Backed ESG Protocol</div>
+            <h1>ECO Impact Token — <span class="gold-highlight">$0.01</span> The Green Core</h1>
+            <p>
+                The ultimate ESG asset of the 123 Network. Built on <strong>Solana Token-2022</strong> with on-chain <strong>Green Audit</strong> (Transfer Hook) and physical backing (Responsibly Mined Gold & Emeralds). Launching at <strong>$0.01</strong> → <strong>+1000% Target</strong>.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-block">
+                    <span class="stat-number">$0.0100</span>
+                    <span class="stat-label">Current Price</span>
+                </div>
+                <div class="stat-block">
+                    <span class="stat-number">8.889T</span>
+                    <span class="stat-label">Total Supply</span>
+                </div>
+                <div class="stat-block">
+                    <span class="stat-number gold-highlight">+1000%</span>
+                    <span class="stat-label">Target</span>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <a href="buy.html" class="btn-primary">Buy €ECO</a>
+                <a href="trade.html" class="btn-gold">Trade on DEX</a>
+            </div>
+            <div class="contract-hero">
+                <span class="label">📜 Contract:</span>
+                <span class="addr">74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp</span>
+                <button onclick="navigator.clipboard.writeText('74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp')" class="copy-btn">📋 Copy</button>
+                <a href="https://solscan.io/token/74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp" target="_blank" class="solscan-link">🔍 Solscan</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-coin-glow"></div>
+            <img src="eco_hero_core.png" alt="ECO Coin" class="hero-coin" onerror="this.src='eco_logo.png'" />
+        </div>
+    </div>
+</section>
+
+<!-- LIVE IMPACT DASHBOARD -->
+<section class="container">
+    <div class="impact-dashboard">
+        <div class="impact-header">
+            <h2><span>📊</span> Live Impact Dashboard</h2>
+            <div class="live-badge">LIVE DATA FROM METEORA</div>
+        </div>
+        
+        <div class="dash-grid">
+            <div class="dash-card" data-tilt data-tilt-max="5">
+                <div class="dash-icon">👥</div>
+                <div class="dash-val">17</div>
+                <div class="dash-label">Holders</div>
+            </div>
+            <div class="dash-card" data-tilt data-tilt-max="5">
+                <div class="dash-icon">💧</div>
+                <div class="dash-val">$984.7B</div>
+                <div class="dash-label">Pool Liquidity</div>
+            </div>
+            <div class="dash-card" data-tilt data-tilt-max="5">
+                <div class="dash-icon">💰</div>
+                <div class="dash-val">$88.48T</div>
+                <div class="dash-label">FDV (Market Cap)</div>
+            </div>
+            <div class="dash-card" data-tilt data-tilt-max="5">
+                <div class="dash-icon">🔄</div>
+                <div class="dash-val">$9.96</div>
+                <div class="dash-label">24h Volume</div>
+            </div>
+        </div>
+
+        <div class="security-warning">
+            ⚠️ <strong>Note:</strong> The pool is newly created. GT Security Score is currently low due to unlocked liquidity. We are working on locking it. Trade with caution.
+        </div>
+    </div>
+</section>
+
+<!-- ТЕХНОЛОГИИ / ОСОБЕННОСТИ -->
+<section id="technology">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Token-2022 & RWA Innovations</span>
+            <h2>Exclusive <span class="highlight-ticker">Green Tech</span></h2>
+            <p>Features that make ECO Impact a next-generation ESG asset.</p>
+        </div>
+        <div class="tech-grid">
+            
+            <div class="tech-card" data-tilt data-tilt-max="5" data-tilt-speed="400">
+                <img src="eco_green_audit.png" alt="Green Audit" />
+                <div class="tech-icon">🍃</div>
+                <h3>On-Chain Green Audit</h3>
+                <p>Powered by Token-2022 Transfer Hooks, every single transaction automatically calculates and records its carbon footprint on-chain. Full transparency.</p>
+                <span class="tech-tag">Transfer Hook</span>
+            </div>
+
+            <div class="tech-card" data-tilt data-tilt-max="5" data-tilt-speed="400">
+                <img src="eco_carbon_offset.png" alt="Carbon Offset" />
+                <div class="tech-icon">🌍</div>
+                <h3>Carbon Offset Mechanism</h3>
+                <p>A percentage of network fees is automatically routed to fund verified carbon offset projects. Hold €ECO, reduce your footprint.</p>
+                <span class="tech-tag">ESG</span>
+            </div>
+
+            <div class="tech-card" data-tilt data-tilt-max="5" data-tilt-speed="400">
+                <img src="eco_rwa_backing.png" alt="RWA Backing" />
+                <div class="tech-icon">💎</div>
+                <h3>Physical Asset Backing</h3>
+                <p>The Eco-Vault is backed by responsibly mined gold and emerald reserves. A direct buyback mechanism guarantees physical liquidity.</p>
+                <span class="tech-tag">RWA Vault</span>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- О ТОКЕНЕ -->
+<section id="about">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">The Vision</span>
+            <h2>Why <span class="highlight-ticker">ECO Impact</span>?</h2>
+            <p>Bridging institutional finance with ecological responsibility.</p>
+        </div>
+        <div class="rwa-grid">
+            <div class="rwa-card glass-card" data-tilt data-tilt-max="5">
+                <img src="eco_governance_ai.png" alt="AI" style="width:60px; height:60px; margin-bottom:10px; opacity:0.8;" />
+                <h4>AI Governance</h4>
+                <p>AI-driven treasury management optimizing ESG yields.</p>
+            </div>
+            <div class="rwa-card glass-card" data-tilt data-tilt-max="5">
+                <img src="eco_vault_green.png" alt="Vault" style="width:60px; height:60px; margin-bottom:10px; opacity:0.8;" />
+                <h4>Eco-Vault</h4>
+                <p>Secure physical storage for gold and emeralds.</p>
+            </div>
+            <div class="rwa-card glass-card" data-tilt data-tilt-max="5">
+                <img src="eco_whitepaper_graphic.png" alt="Docs" style="width:60px; height:60px; margin-bottom:10px; opacity:0.8;" />
+                <h4>Transparent Docs</h4>
+                <p>Open-source smart contracts and public whitepaper.</p>
+            </div>
+            <div class="rwa-card glass-card" data-tilt data-tilt-max="5">
+                <img src="eco_pinksale_banner.png" alt="Launch" style="width:60px; height:60px; margin-bottom:10px; opacity:0.8;" />
+                <h4>Fair Launch</h4>
+                <p>No presale whales. 100% fair distribution on DEX.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ТИКЕР 2 -->
+<div class="ticker ticker-bottom">
+    <div class="ticker-track">
+        <span>🌱 <span class="highlight-ticker">€ECO = $0.01</span> • Target +1000%</span>
+        <span>✦ Contract: <span class="contract-ticker">74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp</span></span>
+        <span>✦ The Green Core</span>
+        <span>✦ Solana — 65,000 TPS</span>
+        <span>✦ RWA Backed • Green Audit</span>
+        <span>✦ Buy on Meteora • Jupiter • OpenSea</span>
+        <span>🌱 <span class="highlight-ticker">€ECO = $0.01</span> • Target +1000%</span>
+        <span>✦ Contract: <span class="contract-ticker">74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp</span></span>
+        <span>✦ The Green Core</span>
+        <span>✦ Solana — 65,000 TPS</span>
+        <span>✦ RWA Backed • Green Audit</span>
+        <span>✦ Buy on Meteora • Jupiter • OpenSea</span>
+    </div>
+</div>
+
+<!-- ПОДВАЛ -->
+<footer>
+    <div class="container footer-inner">
+        <div class="footer-brand">
+            <img src="eco_logo.png" alt="€ECO" />
+            <span class="logo-text">ECO IMPACT</span>
+            <p>Ecological Core of the 123 Network</p>
+        </div>
+        <div class="footer-links">
+            <a href="index.html">Home</a>
+            <a href="buy.html">Buy</a>
+            <a href="trade.html">Trade</a>
+            <a href="green-audit.html">Green Audit</a>
+            <a href="rwa-vault.html">RWA Vault</a>
+        </div>
+    </div>
+
+    <div class="footer-contract">
+        📜 Contract: <span class="addr">74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp</span>
+        <button onclick="navigator.clipboard.writeText('74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp')" class="copy-btn">📋 Copy</button>
+        <a href="https://solscan.io/token/74Zc9ntjagHLYscczhfk5eWfUjcye8vqBWXWaGpLSnFp" target="_blank" class="solscan-link">🔍 Solscan</a>
+    </div>
+    <div class="footer-bottom">
+        <p>© 2026 ECO Impact Token. Built on Solana. | The Green Core of 123 Network. 🌱</p>
+    </div>
+</footer>
+
+<!-- СКРИПТЫ -->
+<script>
+    // ===== 1. ПРЕЛОАДЕР =====
+    window.addEventListener('load', () => {
+        document.getElementById('preloader').classList.add('hidden');
+    });
+
+    // ===== 2. КАСТОМНЫЙ КУРСОР =====
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+    
+    window.addEventListener('mousemove', (e) => {
+        const posX = e.clientX;
+        const posY = e.clientY;
+        cursorDot.style.left = `${posX}px`;
+        cursorDot.style.top = `${posY}px`;
+        cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+    });
+
+    document.querySelectorAll('a, button, .tech-card, .rwa-card, .dash-card').forEach(el => {
+        el.addEventListener('mouseenter', () => cursorOutline.classList.add('hovering'));
+        el.addEventListener('mouseleave', () => cursorOutline.classList.remove('hovering'));
+    });
+
+    // ===== 3. 3D КОСМОС (Green Theme) =====
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('cosmic-bg'), alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const geometry = new THREE.BufferGeometry();
+    const particlesCount = 2000;
+    const posArray = new Float32Array(particlesCount * 3);
+
+    for(let i = 0; i < particlesCount * 3; i++) {
+        posArray[i] = (Math.random() - 0.5) * 10;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    // Меняем цвет частиц на зеленый
+    const material = new THREE.PointsMaterial({ size: 0.005, color: 0x2ECC40, transparent: true, opacity: 0.8 });
+
+    const particlesMesh = new THREE.Points(geometry, material);
+    scene.add(particlesMesh);
+    camera.position.z = 3;
+
+    let mouseX = 0, mouseY = 0;
+    window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) - 0.5;
+        mouseY = (e.clientY / window.innerHeight) - 0.5;
+    });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        particlesMesh.rotation.y += 0.001;
+        particlesMesh.rotation.x += 0.0005;
+        particlesMesh.position.x = mouseX * 0.5;
+        particlesMesh.position.y = -mouseY * 0.5;
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ===== 4. МАГНИТНЫЕ КНОПКИ =====
+    document.querySelectorAll('.btn-primary, .btn-gold').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px) scale(1.05)`;
+        });
+        btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+    });
+</script>
+
+<!-- Подключаем скрипты ИИ и счетчиков, если нужны -->
+<!-- <script src="counter.js"></script> -->
+<!-- <script src="ai-agent.js"></script> -->
+
+</body>
+</html>
